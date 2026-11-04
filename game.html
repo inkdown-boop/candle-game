@@ -1,0 +1,1447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HisNHerFlames - Interactive Candle Melt Prize Experience</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;800&family=Montserrat:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- EmailJS SDK -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+
+    <style>
+        :root {
+            --bg-primary: #0a040d;
+            --bg-secondary: #1a0826;
+            --accent-gold: #f3d078;
+            --accent-gold-dark: #b8860b;
+            --accent-purple: #7b2cbf;
+            --accent-purple-light: #d8b4fe;
+            --accent-ruby: #9d0208;
+            --text-light: #fefefe;
+            --text-muted: #c4b5fd;
+            --glass-bg: rgba(26, 8, 38, 0.75);
+            --glass-border: rgba(243, 208, 120, 0.25);
+            --font-heading: 'Cinzel', serif;
+            --font-body: 'Montserrat', sans-serif;
+            --candle-liquid-purple: rgba(123, 44, 191, 0.85);
+        }
+
+        /* Seasonal Theme Overrides */
+        body.theme- thanksgiving {
+            --bg-primary: #1a0a03;
+            --bg-secondary: #2d1408;
+            --accent-gold: #f4a261;
+            --accent-purple: #e76f51;
+            --accent-purple-light: #f4a261;
+            --glass-border: rgba(244, 162, 97, 0.3);
+        }
+        body.theme-christmas {
+            --bg-primary: #03140a;
+            --bg-secondary: #082613;
+            --accent-gold: #f3d078;
+            --accent-purple: #c1121f;
+            --accent-purple-light: #fdf0d5;
+            --glass-border: rgba(193, 18, 31, 0.4);
+        }
+        body.theme-valentine {
+            --bg-primary: #19030e;
+            --bg-secondary: #2b081b;
+            --accent-gold: #ffb703;
+            --accent-purple: #ff0054;
+            --accent-purple-light: #ffccd5;
+            --glass-border: rgba(255, 0, 84, 0.35);
+        }
+        body.theme-halloween {
+            --bg-primary: #0f051d;
+            --bg-secondary: #1f0b36;
+            --accent-gold: #ff7b00;
+            --accent-purple: #9d4edd;
+            --accent-purple-light: #ffaa00;
+            --glass-border: rgba(255, 123, 0, 0.4);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            background-image: 
+                radial-gradient(circle at 20% 20%, rgba(123, 44, 191, 0.25) 0%, transparent 40%),
+                radial-gradient(circle at 80% 80%, rgba(184, 134, 11, 0.2) 0%, transparent 45%),
+                radial-gradient(circle at 50% 50%, rgba(10, 4, 13, 0.9) 0%, var(--bg-primary) 100%);
+            color: var(--text-light);
+            font-family: var(--font-body);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Ambient Sparks / Embers Floating */
+        #embers-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* Top Bar */
+        .top-navbar {
+            width: 100%;
+            max-width: 1100px;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+        }
+
+        .brand-logo-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+        }
+
+        .brand-badge {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            border: 2px solid var(--accent-gold);
+            background: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 15px rgba(243, 208, 120, 0.3);
+        }
+
+        .brand-badge svg {
+            width: 28px;
+            height: 28px;
+            fill: var(--accent-gold);
+        }
+
+        .brand-title {
+            font-family: var(--font-heading);
+            font-size: 1.4rem;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            background: linear-gradient(135deg, #fff 0%, var(--accent-gold) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .nav-actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .btn-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            border: 1px solid var(--glass-border);
+            background: rgba(26, 8, 38, 0.6);
+            color: var(--accent-gold);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(8px);
+        }
+
+        .btn-icon:hover {
+            border-color: var(--accent-gold);
+            box-shadow: 0 0 12px rgba(243, 208, 120, 0.4);
+            transform: translateY(-2px);
+        }
+
+        /* Main Game Layout Container */
+        .game-wrapper {
+            width: 100%;
+            max-width: 900px;
+            padding: 10px 20px 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 5;
+        }
+
+        .game-header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .game-subtitle {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            color: var(--accent-gold);
+            margin-bottom: 6px;
+            font-weight: 600;
+        }
+
+        .game-main-title {
+            font-family: var(--font-heading);
+            font-size: 2.2rem;
+            color: #ffffff;
+            text-shadow: 0 0 20px rgba(123, 44, 191, 0.8);
+            line-height: 1.2;
+        }
+
+        /* Step Tracker Indicator */
+        .steps-bar {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 18px;
+            background: rgba(26, 8, 38, 0.5);
+            padding: 10px 24px;
+            border-radius: 30px;
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(10px);
+        }
+
+        .step-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .step-item.active {
+            color: var(--accent-gold);
+            text-shadow: 0 0 8px rgba(243, 208, 120, 0.6);
+        }
+
+        .step-number {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        .step-item.active .step-number {
+            background: var(--accent-gold);
+            color: #000;
+        }
+
+        .step-divider {
+            width: 20px;
+            height: 1px;
+            background: var(--glass-border);
+        }
+
+        /* Interactive Stage Card */
+        .stage-card {
+            width: 100%;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 28px;
+            padding: 30px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.6), inset 0 0 30px rgba(123, 44, 191, 0.15);
+            backdrop-filter: blur(16px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+
+        /* Dynamic Candle Graphic Container */
+        .candle-stage {
+            width: 100%;
+            max-width: 360px;
+            height: 380px;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            margin: 20px 0;
+        }
+
+        /* Candle Jar Outer Glass */
+        .candle-jar {
+            width: 220px;
+            height: 270px;
+            border-radius: 20px 20px 35px 35px;
+            border: 3px solid rgba(243, 208, 120, 0.4);
+            background: linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(20,5,30,0.85) 100%);
+            position: relative;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.8), inset 0 0 20px rgba(255,255,255,0.15);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+        }
+
+        /* Solid Wax Layer (Recedes downward) */
+        .wax-solid-layer {
+            width: 100%;
+            height: 190px;
+            background: linear-gradient(180deg, #b8860b 0%, #3a0ca3 40%, #1a0826 100%);
+            position: relative;
+            transition: height 0.1s linear, background 0.3s ease;
+        }
+
+        /* Liquid Wax Pool Top Surface */
+        .liquid-pool-surface {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 25px;
+            background: radial-gradient(ellipse at center, rgba(216, 180, 254, 0.9) 0%, var(--accent-purple) 70%);
+            border-radius: 50%;
+            opacity: 0;
+            transform: translateY(-50%);
+            transition: opacity 0.3s ease, transform 0.1s ease;
+            box-shadow: 0 0 18px var(--accent-purple-light);
+        }
+
+        .liquid-pool-surface.active {
+            opacity: 1;
+            animation: rippleEffect 1.5s infinite ease-in-out;
+        }
+
+        @keyframes rippleEffect {
+            0%, 100% { transform: translateY(-50%) scale(1); }
+            50% { transform: translateY(-50%) scale(1.05); }
+        }
+
+        /* Drip Lines Animation */
+        .wax-drip {
+            position: absolute;
+            top: 0;
+            width: 8px;
+            background: var(--accent-purple-light);
+            border-radius: 0 0 8px 8px;
+            opacity: 0;
+            transition: opacity 0.3s ease, height 0.2s linear;
+        }
+
+        /* Embedded Amethyst Gem (Hidden inside wax) */
+        .amethyst-gem {
+            position: absolute;
+            bottom: 60px;
+            left: 50%;
+            transform: translateX(-50%) scale(0.6);
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, #d8b4fe 0%, #7b2cbf 60%, #3a0ca3 100%);
+            clip-path: polygon(50% 0%, 90% 20%, 100% 60%, 75% 100%, 25% 100%, 0% 60%, 10% 20%);
+            box-shadow: 0 0 25px rgba(216, 180, 254, 0.9);
+            cursor: pointer;
+            opacity: 0.1;
+            transition: all 0.4s ease;
+            z-index: 4;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .amethyst-gem.revealed {
+            opacity: 1;
+            transform: translateX(-50%) scale(1);
+            animation: gemGlow 1.5s infinite alternate ease-in-out;
+        }
+
+        @keyframes gemGlow {
+            0% { box-shadow: 0 0 15px var(--accent-purple-light); filter: brightness(1); }
+            100% { box-shadow: 0 0 35px var(--accent-gold), 0 0 50px var(--accent-purple-light); filter: brightness(1.3); }
+        }
+
+        /* Tap Target Marker Ring */
+        .gem-target-ring {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            border: 2px dashed var(--accent-gold);
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            animation: spinRing 4s linear infinite;
+            pointer-events: none;
+            opacity: 0;
+        }
+
+        .amethyst-gem.revealed .gem-target-ring {
+            opacity: 1;
+        }
+
+        @keyframes spinRing {
+            100% { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        .tap-instruction-tooltip {
+            position: absolute;
+            top: -35px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--accent-gold);
+            color: #000;
+            font-weight: 800;
+            font-size: 0.72rem;
+            padding: 4px 10px;
+            border-radius: 12px;
+            white-space: nowrap;
+            letter-spacing: 1px;
+            pointer-events: none;
+            animation: bounceTooltip 1s infinite alternate;
+        }
+
+        @keyframes bounceTooltip {
+            0% { transform: translateX(-50%) translateY(0); }
+            100% { transform: translateX(-50%) translateY(-6px); }
+        }
+
+        /* Flame and Wicks */
+        .wick-container {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 40px;
+            z-index: 5;
+        }
+
+        .single-wick {
+            width: 4px;
+            height: 18px;
+            background: #222;
+            position: relative;
+        }
+
+        .flame {
+            width: 18px;
+            height: 32px;
+            background: linear-gradient(180deg, #ffffff 0%, #ffbe0b 35%, #fb5607 70%, transparent 100%);
+            border-radius: 50% 50% 35% 35%;
+            position: absolute;
+            top: -28px;
+            left: 50%;
+            transform: translateX(-50%);
+            filter: drop-shadow(0 0 12px #ffbe0b);
+            animation: flicker 0.15s infinite alternate ease-in-out;
+        }
+
+        @keyframes flicker {
+            0% { transform: translateX(-50%) scale(1) rotate(-1deg); opacity: 0.95; }
+            100% { transform: translateX(-50%) scale(1.08) rotate(1.5deg); opacity: 1; }
+        }
+
+        /* Brand Logo Medallion on Jar */
+        .jar-logo-medallion {
+            position: absolute;
+            bottom: 25px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 75px;
+            height: 75px;
+            border-radius: 50%;
+            border: 2px solid var(--accent-gold);
+            background: rgba(0,0,0,0.85);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 15px rgba(0,0,0,0.9);
+            z-index: 6;
+        }
+
+        .jar-logo-medallion svg {
+            width: 36px;
+            height: 36px;
+            fill: var(--accent-gold);
+        }
+
+        /* Interactive Controls Section */
+        .control-area {
+            width: 100%;
+            max-width: 450px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+            margin-top: 10px;
+        }
+
+        /* Progress Bar for Wax Melting */
+        .melt-progress-container {
+            width: 100%;
+            background: rgba(0,0,0,0.5);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 4px;
+            position: relative;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .melt-progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #7b2cbf 0%, var(--accent-gold) 100%);
+            border-radius: 16px;
+            transition: width 0.1s linear;
+            box-shadow: 0 0 12px var(--accent-gold);
+        }
+
+        .melt-progress-text {
+            position: absolute;
+            width: 100%;
+            text-align: center;
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: #fff;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.9);
+        }
+
+        /* Main Big Interaction Button */
+        .btn-hold-action {
+            width: 100%;
+            min-height: 62px;
+            border-radius: 35px;
+            border: 2px solid var(--accent-gold);
+            background: linear-gradient(135deg, rgba(123, 44, 191, 0.9) 0%, rgba(26, 8, 38, 0.95) 100%);
+            color: var(--accent-gold);
+            font-family: var(--font-heading);
+            font-size: 1.15rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5), inset 0 0 15px rgba(243, 208, 120, 0.2);
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-hold-action:active {
+            transform: scale(0.98);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.8), 0 0 20px var(--accent-gold);
+        }
+
+        .btn-hold-action i {
+            font-size: 1.3rem;
+        }
+
+        /* Helper Subtext */
+        .instruction-hint {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            text-align: center;
+            min-height: 24px;
+        }
+
+        /* Prize Card Overlay Container */
+        .prize-reveal-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(5, 2, 8, 0.88);
+            backdrop-filter: blur(12px);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease;
+        }
+
+        .prize-reveal-modal.open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .prize-card {
+            background: linear-gradient(145deg, rgba(26, 8, 38, 0.95) 0%, rgba(10, 4, 13, 0.98) 100%);
+            border: 2px solid var(--accent-gold);
+            border-radius: 28px;
+            width: 100%;
+            max-width: 480px;
+            padding: 35px 25px;
+            text-align: center;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.9), 0 0 40px rgba(243, 208, 120, 0.3);
+            transform: scale(0.85);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+        }
+
+        .prize-reveal-modal.open .prize-card {
+            transform: scale(1);
+        }
+
+        .prize-icon-badge {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent-gold) 0%, var(--accent-gold-dark) 100%);
+            color: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.2rem;
+            margin: 0 auto 20px auto;
+            box-shadow: 0 0 25px rgba(243, 208, 120, 0.6);
+        }
+
+        .prize-title {
+            font-family: var(--font-heading);
+            font-size: 1.8rem;
+            color: #fff;
+            margin-bottom: 8px;
+        }
+
+        .prize-subtitle {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            margin-bottom: 22px;
+            line-height: 1.5;
+        }
+
+        /* Coupon Code Box */
+        .coupon-code-box {
+            background: rgba(0, 0, 0, 0.6);
+            border: 2px dashed var(--accent-gold);
+            border-radius: 16px;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .code-value {
+            font-family: monospace;
+            font-size: 1.5rem;
+            font-weight: 800;
+            letter-spacing: 3px;
+            color: var(--accent-gold);
+        }
+
+        .btn-copy {
+            background: var(--accent-gold);
+            color: #000;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 10px;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 0.82rem;
+            transition: all 0.2s ease;
+        }
+
+        .btn-copy:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(243, 208, 120, 0.5);
+        }
+
+        /* Claim Rules Disclaimer */
+        .rules-disclaimer {
+            font-size: 0.75rem;
+            color: rgba(255,255,255,0.6);
+            line-height: 1.4;
+            margin-bottom: 22px;
+            background: rgba(255,255,255,0.03);
+            padding: 10px;
+            border-radius: 10px;
+            text-align: left;
+        }
+
+        .btn-primary-action {
+            width: 100%;
+            padding: 16px;
+            border-radius: 30px;
+            border: none;
+            background: linear-gradient(90deg, var(--accent-gold) 0%, var(--accent-gold-dark) 100%);
+            color: #000;
+            font-weight: 800;
+            font-size: 1rem;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary-action:hover {
+            box-shadow: 0 0 20px rgba(243, 208, 120, 0.6);
+        }
+
+        /* Verification Form Section for 2nd Chance */
+        .second-chance-box {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid var(--glass-border);
+            width: 100%;
+            text-align: center;
+        }
+
+        .second-chance-title {
+            font-size: 0.85rem;
+            color: var(--accent-gold);
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .verify-input-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        .verify-input {
+            flex: 1;
+            background: rgba(0,0,0,0.5);
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            padding: 10px 14px;
+            color: #fff;
+            font-size: 0.85rem;
+            outline: none;
+        }
+
+        .verify-input:focus {
+            border-color: var(--accent-gold);
+        }
+
+        .btn-verify {
+            background: rgba(123, 44, 191, 0.8);
+            border: 1px solid var(--accent-purple-light);
+            color: #fff;
+            padding: 0 16px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 0.8rem;
+            cursor: pointer;
+        }
+
+        /* Cooldown Timer Overlay Badge */
+        .cooldown-badge {
+            display: none;
+            background: rgba(157, 2, 8, 0.25);
+            border: 1px solid rgba(157, 2, 8, 0.6);
+            color: #ff8585;
+            padding: 12px 20px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        /* Hidden Admin Panel Drawer */
+        .admin-panel {
+            position: fixed;
+            bottom: 0;
+            right: 0;
+            width: 380px;
+            max-width: 100vw;
+            background: #0f0516;
+            border-top: 2px solid var(--accent-gold);
+            border-left: 2px solid var(--accent-gold);
+            border-radius: 20px 0 0 0;
+            padding: 20px;
+            z-index: 200;
+            box-shadow: 0 -10px 40px rgba(0,0,0,0.9);
+            transform: translateY(100%);
+            transition: transform 0.4s ease;
+        }
+
+        .admin-panel.open {
+            transform: translateY(0);
+        }
+
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .admin-title {
+            font-family: var(--font-heading);
+            color: var(--accent-gold);
+            font-size: 1.1rem;
+        }
+
+        .admin-group {
+            margin-bottom: 12px;
+        }
+
+        .admin-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .admin-select, .admin-input {
+            width: 100%;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid var(--glass-border);
+            color: #fff;
+            padding: 8px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+        }
+
+        /* Mobile Adjustments */
+        @media (max-width: 600px) {
+            .game-main-title { font-size: 1.6rem; }
+            .candle-stage { height: 320px; }
+            .candle-jar { width: 190px; height: 230px; }
+            .steps-bar { font-size: 0.72rem; padding: 8px 14px; gap: 8px; }
+            .admin-panel { width: 100%; }
+        }
+    </style>
+</head>
+<body class="theme-neutral">
+
+    <!-- Embers Animated Canvas Background -->
+    <canvas id="embers-canvas"></canvas>
+
+    <!-- Navigation Header -->
+    <header class="top-navbar">
+        <div class="brand-logo-container" onclick="openAdminPrompt()">
+            <div class="brand-badge">
+                <svg viewBox="0 0 24 24">
+                    <path d="M12,2C11.5,5 9,7 9,10C9,12.21 10.79,14 13,14C15.21,14 17,12.21 17,10C17,7 14.5,5 14,2C12,2 12,2 12,2M12,22C16.42,22 20,18.42 20,14C20,11.08 18.42,8.5 16,7.16C16.84,9.29 16.14,11.75 14.37,13.15C12.6,14.56 10.12,14.62 8.28,13.3C7.47,15 7.71,17.08 8.95,18.5C10.19,19.92 12.06,20.5 13.9,20.08C12.92,21.28 11.47,22 12,22Z"/>
+                </svg>
+            </div>
+            <span class="brand-title">HisNHerFlames</span>
+        </div>
+        <div class="nav-actions">
+            <button class="btn-icon" id="audio-toggle-btn" title="Toggle Sound">
+                <i class="fa-solid fa-volume-high"></i>
+            </button>
+            <button class="btn-icon" id="help-btn" title="How to Play">
+                <i class="fa-solid fa-circle-question"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Game Container -->
+    <main class="game-wrapper">
+
+        <div class="game-header">
+            <p class="game-subtitle">Exclusive Luxury Reward Ritual</p>
+            <h1 class="game-main-title">Melt The Candle, Claim The Flame</h1>
+
+            <!-- Step Progress Indicator -->
+            <div class="steps-bar">
+                <div class="step-item active" id="step-indicator-1">
+                    <div class="step-number">1</div>
+                    <span>Melt Wax</span>
+                </div>
+                <div class="step-divider"></div>
+                <div class="step-item" id="step-indicator-2">
+                    <div class="step-number">2</div>
+                    <span>Extract Gem</span>
+                </div>
+                <div class="step-divider"></div>
+                <div class="step-item" id="step-indicator-3">
+                    <div class="step-number">3</div>
+                    <span>Reveal Prize</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cooldown Warning Banner -->
+        <div class="cooldown-badge" id="cooldown-banner">
+            <i class="fa-solid fa-clock"></i> Next free play available in: <strong id="cooldown-timer">23:59:59</strong>
+        </div>
+
+        <!-- Stage Card -->
+        <div class="stage-card">
+
+            <!-- Interactive Candle Display Stage -->
+            <div class="candle-stage">
+                <div class="candle-jar">
+                    
+                    <!-- Solid Wax Body Layer -->
+                    <div class="wax-solid-layer" id="wax-layer">
+                        
+                        <!-- Top Surface Liquid Pool Ripple -->
+                        <div class="liquid-pool-surface" id="liquid-pool"></div>
+
+                        <!-- Side Dripping Drops -->
+                        <div class="wax-drip" style="left: 20%; height: 0px;" id="drip-1"></div>
+                        <div class="wax-drip" style="left: 70%; height: 0px;" id="drip-2"></div>
+
+                        <!-- Embedded Gem inside Wax -->
+                        <div class="amethyst-gem" id="crystal-gem" onclick="handleGemExtract()">
+                            <i class="fa-solid fa-gem" style="color: rgba(255,255,255,0.8); font-size: 1.5rem;"></i>
+                            <div class="gem-target-ring"></div>
+                            <div class="tap-instruction-tooltip" id="gem-tooltip">TAP TO EXTRACT!</div>
+                        </div>
+
+                    </div>
+
+                    <!-- Triple Flame Wicks -->
+                    <div class="wick-container">
+                        <div class="single-wick"><div class="flame"></div></div>
+                        <div class="single-wick"><div class="flame" style="animation-delay: -0.07s;"></div></div>
+                    </div>
+
+                    <!-- Glass Jar Brand Logo Medallion -->
+                    <div class="jar-logo-medallion">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M12,2C11.5,5 9,7 9,10C9,12.21 10.79,14 13,14C15.21,14 17,12.21 17,10C17,7 14.5,5 14,2C12,2 12,2 12,2M12,22C16.42,22 20,18.42 20,14C20,11.08 18.42,8.5 16,7.16C16.84,9.29 16.14,11.75 14.37,13.15C12.6,14.56 10.12,14.62 8.28,13.3C7.47,15 7.71,17.08 8.95,18.5C10.19,19.92 12.06,20.5 13.9,20.08C12.92,21.28 11.47,22 12,22Z"/>
+                        </svg>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Controls Area -->
+            <div class="control-area">
+
+                <!-- Melt Meter Progress Bar -->
+                <div class="melt-progress-container">
+                    <div class="melt-progress-bar" id="melt-progress"></div>
+                    <div class="melt-progress-text" id="melt-progress-text">WAX MELT STATUS: 0%</div>
+                </div>
+
+                <!-- Main Action Button -->
+                <button class="btn-hold-action" id="melt-btn">
+                    <i class="fa-solid fa-fire-burner"></i>
+                    <span id="btn-text">HOLD BUTTON TO MELT WAX</span>
+                </button>
+
+                <p class="instruction-hint" id="instruction-hint">
+                    Press and hold the button above to heat and liquefy the coconut soy wax pool.
+                </p>
+
+                <!-- Order # 2nd Chance Verification -->
+                <div class="second-chance-box" id="second-chance-section">
+                    <div class="second-chance-title"><i class="fa-solid fa-bag-shopping"></i> Have a Recent Purchase Order #?</div>
+                    <div class="verify-input-group">
+                        <input type="text" class="verify-input" id="order-number-input" placeholder="Enter Order # (e.g. HNF-8942)">
+                        <button class="btn-verify" onclick="verifySecondChance()">UNCOOLDOWN</button>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Prize Reveal Overlay Modal -->
+    <div class="prize-reveal-modal" id="prize-modal">
+        <div class="prize-card">
+            <div class="prize-icon-badge" id="prize-icon">
+                <i class="fa-solid fa-gift"></i>
+            </div>
+            <h2 class="prize-title" id="prize-headline">35% OFF YOUR ORDER!</h2>
+            <p class="prize-subtitle" id="prize-description">
+                You successfully liquified the wax pool and extracted the hidden amethyst charm!
+            </p>
+
+            <div class="coupon-code-box" id="code-box">
+                <span class="code-value" id="prize-code-text">SAVE35</span>
+                <button class="btn-copy" onclick="copyCouponCode()"><i class="fa-regular fa-copy"></i> COPY</button>
+            </div>
+
+            <div class="rules-disclaimer">
+                <i class="fa-solid fa-shield-halved"></i> <strong>Claim Eligibility:</strong> Valid for previous customers or active purchases at checkout. Offer valid for 24 hours. Automated receipt notification dispatched to <em>contact@hisnherflames.com</em>.
+            </div>
+
+            <button class="btn-primary-action" onclick="closePrizeModal()">CLAIM AT CHECKOUT NOW</button>
+        </div>
+    </div>
+
+    <!-- Hidden Owner Admin Dashboard Panel -->
+    <div class="admin-panel" id="admin-panel">
+        <div class="admin-header">
+            <span class="admin-title"><i class="fa-solid fa-sliders"></i> Store Owner Controls</span>
+            <button class="btn-icon" style="width:30px; height:30px;" onclick="toggleAdminPanel(false)"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+
+        <div class="admin-group">
+            <label class="admin-label">Active Seasonal Theme</label>
+            <select class="admin-select" id="theme-selector" onchange="changeTheme(this.value)">
+                <option value="neutral">Neutral Luxury (Default)</option>
+                <option value="thanksgiving">Thanksgiving Warmth</option>
+                <option value="christmas">Christmas Holiday</option>
+                <option value="valentine">Valentine's Flame</option>
+                <option value="halloween">Spooky Halloween</option>
+            </select>
+        </div>
+
+        <div class="admin-group">
+            <label class="admin-label">EmailJS Service ID</label>
+            <input type="text" class="admin-input" id="emailjs-service" value="service_hisnherflames">
+        </div>
+
+        <div class="admin-group">
+            <label class="admin-label">EmailJS Template ID</label>
+            <input type="text" class="admin-input" id="emailjs-template" value="template_prize_alert">
+        </div>
+
+        <div class="admin-group">
+            <label class="admin-label">EmailJS Public Key</label>
+            <input type="text" class="admin-input" id="emailjs-key" value="user_public_key">
+        </div>
+
+        <button class="btn-primary-action" style="margin-top: 10px; font-size: 0.85rem; padding: 10px;" onclick="resetCooldownTimer()">Reset Cooldown Timer</button>
+    </div>
+
+    <!-- Application Script -->
+    <script>
+        /* Global Configuration & State */
+        const STORE_EMAIL = "contact@hisnherflames.com";
+        const ADMIN_PIN = "1982";
+
+        let currentProgress = 0;
+        let meltInterval = null;
+        let isMelting = false;
+        let currentStep = 1; // Step 1: Melt | Step 2: Extract | Step 3: Reveal
+        let audioMuted = false;
+        let currentWinningPrize = null;
+
+        /* Complete Prize & Outcome Pool */
+        const PRIZE_POOL = [
+            { id: '50off', name: '50% OFF Entire Order', code: 'HALF50', icon: 'fa-tags', isWin: true, weight: 5 },
+            { id: '45off', name: '45% OFF Entire Order', code: 'SAVE45', icon: 'fa-percent', isWin: true, weight: 10 },
+            { id: '35off', name: '35% OFF Entire Order', code: 'SAVE35', icon: 'fa-fire', isWin: true, weight: 15 },
+            { id: '25off', name: '25% OFF Entire Order', code: 'SAVE25', icon: 'fa-gift', isWin: true, weight: 20 },
+            { id: '20off', name: '20% OFF Entire Order', code: 'SAVE20', icon: 'fa-ticket', isWin: true, weight: 25 },
+            { id: 'bogo', name: 'Buy 1, Get 1 FREE', code: 'BOGOFREE', icon: 'fa-box-open', isWin: true, weight: 10 },
+            { id: 'freecandle', name: 'Free Premium Candle', code: 'FREECANDLE', icon: 'fa-wine-glass-empty', isWin: true, weight: 5 },
+            { id: 'freeship', name: 'Free Express Shipping', code: 'FREESHIP', icon: 'fa-truck-fast', isWin: true, weight: 10 },
+            
+            /* Failure Outcomes */
+            { id: 'fail_flicker', name: 'The Flame Flickered Out!', code: 'N/A', icon: 'fa-wind', isWin: false, weight: 15, msg: 'Sorry! The flame flickered out before fully extracting the gem. Try again in 24 hours or use order number!' },
+            { id: 'fail_cooled', name: 'Wax Cooled Too Quickly!', code: 'N/A', icon: 'fa-snowflake', isWin: false, weight: 15, msg: 'Better luck next time! The wax pool cooled down before extracting.' }
+        ];
+
+        /* Synthesized Web Audio API Sound Effects */
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        let audioContext = null;
+
+        function playSound(type) {
+            if (audioMuted) return;
+            try {
+                if (!audioContext) audioContext = new AudioCtx();
+                if (audioContext.state === 'suspended') audioContext.resume();
+
+                const osc = audioContext.createOscillator();
+                const gain = audioContext.createGain();
+                osc.connect(gain);
+                gain.connect(audioContext.destination);
+
+                const now = audioContext.currentTime;
+
+                if (type === 'ignite') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(120, now);
+                    osc.frequency.exponentialRampToValueAtTime(380, now + 0.3);
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.linearRampToValueAtTime(0.01, now + 0.3);
+                    osc.start(now);
+                    osc.stop(now + 0.3);
+                } else if (type === 'pop') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(400, now);
+                    osc.frequency.exponentialRampToValueAtTime(880, now + 0.15);
+                    gain.gain.setValueAtTime(0.3, now);
+                    gain.gain.linearRampToValueAtTime(0.01, now + 0.15);
+                    osc.start(now);
+                    osc.stop(now + 0.15);
+                } else if (type === 'win') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(523.25, now); // C5
+                    osc.frequency.setValueAtTime(659.25, now + 0.12); // E5
+                    osc.frequency.setValueAtTime(783.99, now + 0.24); // G5
+                    osc.frequency.setValueAtTime(1046.50, now + 0.36); // C6
+                    gain.gain.setValueAtTime(0.25, now);
+                    gain.gain.linearRampToValueAtTime(0.01, now + 0.6);
+                    osc.start(now);
+                    osc.stop(now + 0.6);
+                } else if (type === 'fail') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(300, now);
+                    osc.frequency.linearRampToValueAtTime(110, now + 0.4);
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.linearRampToValueAtTime(0.01, now + 0.4);
+                    osc.start(now);
+                    osc.stop(now + 0.4);
+                }
+            } catch (e) { console.log('Audio playback prevented'); }
+        }
+
+        /* DOM Elements */
+        const meltBtn = document.getElementById('melt-btn');
+        const meltProgress = document.getElementById('melt-progress');
+        const meltProgressText = document.getElementById('melt-progress-text');
+        const waxLayer = document.getElementById('wax-layer');
+        const liquidPool = document.getElementById('liquid-pool');
+        const crystalGem = document.getElementById('crystal-gem');
+        const btnText = document.getElementById('btn-text');
+        const instructionHint = document.getElementById('instruction-hint');
+        const drip1 = document.getElementById('drip-1');
+        const drip2 = document.getElementById('drip-2');
+
+        /* Setup Interaction Event Listeners */
+        function initEvents() {
+            // Touch & Mouse Listeners for Hold Action
+            meltBtn.addEventListener('mousedown', startMelting);
+            meltBtn.addEventListener('mouseup', stopMelting);
+            meltBtn.addEventListener('mouseleave', stopMelting);
+
+            meltBtn.addEventListener('touchstart', (e) => { e.preventDefault(); startMelting(); });
+            meltBtn.addEventListener('touchend', (e) => { e.preventDefault(); stopMelting(); });
+
+            // Audio Toggle
+            document.getElementById('audio-toggle-btn').addEventListener('click', () => {
+                audioMuted = !audioMuted;
+                const icon = document.getElementById('audio-toggle-btn').querySelector('i');
+                icon.className = audioMuted ? 'fa-solid fa-volume-xmark' : 'fa-solid fa-volume-high';
+            });
+
+            // Help Modal
+            document.getElementById('help-btn').addEventListener('click', () => {
+                alert("HOW TO PLAY:\n\n1. Press and hold the button to heat the candle wax.\n2. Once 100% melted, tap the glowing Amethyst Gem inside the wax pool.\n3. Reveal your exclusive discount code or reward!");
+            });
+
+            checkCooldownState();
+            initEmbersCanvas();
+        }
+
+        /* Smooth Wax Melting Logic */
+        function startMelting() {
+            if (currentStep !== 1 || isMelting) return;
+            if (isCooldownActive()) return;
+
+            isMelting = true;
+            playSound('ignite');
+            liquidPool.classList.add('active');
+
+            meltInterval = setInterval(() => {
+                // Balanced melting speed rate (~2.5 - 3 seconds total)
+                currentProgress += 0.65;
+
+                if (currentProgress >= 100) {
+                    currentProgress = 100;
+                    updateMeltUI();
+                    stopMelting();
+                    transitionToStep2();
+                } else {
+                    updateMeltUI();
+                }
+            }, 20);
+        }
+
+        function stopMelting() {
+            if (!isMelting) return;
+            isMelting = false;
+            clearInterval(meltInterval);
+            liquidPool.classList.remove('active');
+        }
+
+        function updateMeltUI() {
+            meltProgress.style.width = currentProgress + '%';
+            meltProgressText.innerText = `WAX MELT STATUS: ${Math.floor(currentProgress)}%`;
+
+            // Dynamic Wax Receding & Drip Physics
+            const solidHeight = 190 - (190 * (currentProgress / 100) * 0.55);
+            waxLayer.style.height = solidHeight + 'px';
+
+            // Drips elongate down sides
+            drip1.style.height = (currentProgress * 0.6) + 'px';
+            drip1.style.opacity = (currentProgress / 100);
+            drip2.style.height = (currentProgress * 0.4) + 'px';
+            drip2.style.opacity = (currentProgress / 100);
+        }
+
+        /* Transition: Step 1 -> Step 2 */
+        function transitionToStep2() {
+            currentStep = 2;
+            playSound('pop');
+
+            // Update Steps Tracker UI
+            document.getElementById('step-indicator-1').classList.remove('active');
+            document.getElementById('step-indicator-2').classList.add('active');
+
+            // Reveal Gem with Animation
+            crystalGem.classList.add('revealed');
+
+            btnText.innerText = "TAP GEM IN CANDLE TO EXTRACT";
+            meltBtn.style.opacity = '0.5';
+            meltBtn.style.pointerEvents = 'none';
+            instructionHint.innerText = "The wax is fully liquid! Tap the glowing purple crystal surfacing in the jar!";
+        }
+
+        /* Step 2: Handle Gem Extraction Click */
+        function handleGemExtract() {
+            if (currentStep !== 2) return;
+
+            playSound('pop');
+
+            // Animate Gem Extract Burst
+            crystalGem.style.transform = 'translateX(-50%) translateY(-60px) scale(1.3)';
+            crystalGem.style.opacity = '0';
+
+            setTimeout(() => {
+                transitionToStep3();
+            }, 400);
+        }
+
+        /* Transition: Step 2 -> Step 3 (Reveal Result) */
+        function transitionToStep3() {
+            currentStep = 3;
+
+            document.getElementById('step-indicator-2').classList.remove('active');
+            document.getElementById('step-indicator-3').classList.add('active');
+
+            // Pick Weighted Outcome from Pool
+            currentWinningPrize = pickWeightedPrize();
+
+            if (currentWinningPrize.isWin) {
+                playSound('win');
+                confetti({ particleCount: 90, spread: 70, origin: { y: 0.6 } });
+                showPrizeModal(currentWinningPrize);
+                sendEmailAlert(currentWinningPrize);
+            } else {
+                playSound('fail');
+                showPrizeModal(currentWinningPrize);
+            }
+
+            setCooldownTimer();
+        }
+
+        /* Pick Random Weighted Outcome */
+        function pickWeightedPrize() {
+            const totalWeight = PRIZE_POOL.reduce((sum, item) => sum + item.weight, 0);
+            let randomNum = Math.random() * totalWeight;
+
+            for (let item of PRIZE_POOL) {
+                if (randomNum < item.weight) return item;
+                randomNum -= item.weight;
+            }
+            return PRIZE_POOL[0];
+        }
+
+        /* Display Prize Overlay Modal */
+        function showPrizeModal(prize) {
+            const modal = document.getElementById('prize-modal');
+            const iconBadge = document.getElementById('prize-icon');
+            const headline = document.getElementById('prize-headline');
+            const desc = document.getElementById('prize-description');
+            const codeBox = document.getElementById('code-box');
+            const codeText = document.getElementById('prize-code-text');
+
+            iconBadge.innerHTML = `<i class="fa-solid ${prize.icon}"></i>`;
+            headline.innerText = prize.name;
+
+            if (prize.isWin) {
+                desc.innerText = "Congratulations! You successfully liquefied the wax pool and extracted the hidden amethyst charm!";
+                codeBox.style.display = 'flex';
+                codeText.innerText = prize.code;
+            } else {
+                desc.innerText = prize.msg;
+                codeBox.style.display = 'none';
+            }
+
+            modal.classList.add('open');
+        }
+
+        function closePrizeModal() {
+            document.getElementById('prize-modal').classList.remove('open');
+        }
+
+        function copyCouponCode() {
+            const code = document.getElementById('prize-code-text').innerText;
+            navigator.clipboard.writeText(code);
+            alert("Coupon code " + code + " copied to clipboard!");
+        }
+
+        /* Email Notification Trigger via EmailJS */
+        function sendEmailAlert(prize) {
+            const serviceID = document.getElementById('emailjs-service').value;
+            const templateID = document.getElementById('emailjs-template').value;
+            const publicKey = document.getElementById('emailjs-key').value;
+
+            const templateParams = {
+                to_email: STORE_EMAIL,
+                prize_name: prize.name,
+                coupon_code: prize.code,
+                timestamp: new Date().toLocaleString(),
+                user_agent: navigator.userAgent
+            };
+
+            if (window.emailjs && publicKey !== 'user_public_key') {
+                emailjs.init(publicKey);
+                emailjs.send(serviceID, templateID, templateParams)
+                    .then(() => console.log('Prize alert email sent successfully.'))
+                    .catch((err) => console.log('EmailJS dispatch notice:', err));
+            }
+        }
+
+        /* 24-Hour Cooldown & Order # Verification Logic */
+        function setCooldownTimer() {
+            const expireTime = Date.now() + (24 * 60 * 60 * 1000);
+            localStorage.setItem('hnf_cooldown_until', expireTime);
+            checkCooldownState();
+        }
+
+        function isCooldownActive() {
+            const cooldownUntil = localStorage.getItem('hnf_cooldown_until');
+            if (!cooldownUntil) return false;
+            return Date.now() < parseInt(cooldownUntil);
+        }
+
+        function checkCooldownState() {
+            const banner = document.getElementById('cooldown-banner');
+            const timerText = document.getElementById('cooldown-timer');
+
+            if (isCooldownActive()) {
+                banner.style.display = 'block';
+                meltBtn.style.opacity = '0.5';
+                meltBtn.style.pointerEvents = 'none';
+                btnText.innerText = "COOLDOWN ACTIVE";
+
+                const updateClock = () => {
+                    const remaining = parseInt(localStorage.getItem('hnf_cooldown_until')) - Date.now();
+                    if (remaining <= 0) {
+                        resetCooldownTimer();
+                    } else {
+                        const hrs = String(Math.floor(remaining / (1000 * 60 * 60))).padStart(2, '0');
+                        const mins = String(Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60))).padStart(2, '0');
+                        const secs = String(Math.floor((remaining % (1000 * 60)) / 1000)).padStart(2, '0');
+                        timerText.innerText = `${hrs}:${mins}:${secs}`;
+                    }
+                };
+                updateClock();
+                setInterval(updateClock, 1000);
+            } else {
+                banner.style.display = 'none';
+                if (currentStep === 1) {
+                    meltBtn.style.opacity = '1';
+                    meltBtn.style.pointerEvents = 'auto';
+                    btnText.innerText = "HOLD BUTTON TO MELT WAX";
+                }
+            }
+        }
+
+        function verifySecondChance() {
+            const input = document.getElementById('order-number-input').value.trim();
+            if (input.length >= 4) {
+                resetCooldownTimer();
+                alert("Order #" + input + " verified! Your 24-hour cooldown has been bypassed for your second chance!");
+            } else {
+                alert("Please enter a valid purchase Order Number.");
+            }
+        }
+
+        function resetCooldownTimer() {
+            localStorage.removeItem('hnf_cooldown_until');
+            location.reload();
+        }
+
+        /* Admin Dashboard Drawer Prompts */
+        function openAdminPrompt() {
+            const pin = prompt("Enter Owner Admin PIN:");
+            if (pin === ADMIN_PIN) {
+                toggleAdminPanel(true);
+            } else if (pin !== null) {
+                alert("Incorrect PIN");
+            }
+        }
+
+        function toggleAdminPanel(open) {
+            document.getElementById('admin-panel').classList.toggle('open', open);
+        }
+
+        function changeTheme(themeName) {
+            document.body.className = 'theme-' + themeName;
+        }
+
+        /* Ambient Embers Canvas Background */
+        function initEmbersCanvas() {
+            const canvas = document.getElementById('embers-canvas');
+            const ctx = canvas.getContext('2d');
+            let width = canvas.width = window.innerWidth;
+            let height = canvas.height = window.innerHeight;
+
+            window.addEventListener('resize', () => {
+                width = canvas.width = window.innerWidth;
+                height = canvas.height = window.innerHeight;
+            });
+
+            const particles = Array.from({ length: 35 }, () => ({
+                x: Math.random() * width,
+                y: Math.random() * height + height,
+                radius: Math.random() * 2.5 + 0.8,
+                speedY: Math.random() * 0.8 + 0.3,
+                speedX: Math.random() * 0.4 - 0.2,
+                opacity: Math.random() * 0.7 + 0.3
+            }));
+
+            function animate() {
+                ctx.clearRect(0, 0, width, height);
+                particles.forEach(p => {
+                    p.y -= p.speedY;
+                    p.x += p.speedX;
+                    if (p.y < -10) {
+                        p.y = height + 10;
+                        p.x = Math.random() * width;
+                    }
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(243, 208, 120, ${p.opacity})`;
+                    ctx.shadowBlur = 8;
+                    ctx.shadowColor = '#f3d078';
+                    ctx.fill();
+                });
+                requestAnimationFrame(animate);
+            }
+            animate();
+        }
+
+        // Initialize application when loaded
+        window.addEventListener('DOMContentLoaded', initEvents);
+    </script>
+</body>
+</html>
