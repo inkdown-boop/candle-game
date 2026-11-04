@@ -297,13 +297,13 @@
             background: linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(20,5,30,0.85) 100%);
             position: relative;
             box-shadow: 0 15px 35px rgba(0,0,0,0.8), inset 0 0 20px rgba(255,255,255,0.15);
-            overflow: visible; /* Allows flames & wicks to sit naturally at the top rim */
+            overflow: visible;
             display: flex;
             flex-direction: column;
             justify-content: flex-end;
         }
 
-        /* Solid Wax Layer (Recedes downward inside the jar) */
+        /* Solid Wax Layer */
         .wax-solid-layer {
             width: 100%;
             height: 190px;
@@ -1166,7 +1166,6 @@
 
         /* Setup Interaction Event Listeners */
         function initEvents() {
-            // Touch & Mouse Listeners for Hold Action
             meltBtn.addEventListener('mousedown', startMelting);
             meltBtn.addEventListener('mouseup', stopMelting);
             meltBtn.addEventListener('mouseleave', stopMelting);
@@ -1174,14 +1173,12 @@
             meltBtn.addEventListener('touchstart', (e) => { e.preventDefault(); startMelting(); });
             meltBtn.addEventListener('touchend', (e) => { e.preventDefault(); stopMelting(); });
 
-            // Audio Toggle
             document.getElementById('audio-toggle-btn').addEventListener('click', () => {
                 audioMuted = !audioMuted;
                 const icon = document.getElementById('audio-toggle-btn').querySelector('i');
                 icon.className = audioMuted ? 'fa-solid fa-volume-xmark' : 'fa-solid fa-volume-high';
             });
 
-            // Help Modal
             document.getElementById('help-btn').addEventListener('click', () => {
                 alert("HOW TO PLAY:\n\n1. Press and hold the button to heat the candle wax.\n2. Once 100% melted, tap the glowing Amethyst Gem inside the wax pool.\n3. Reveal your exclusive discount code or reward!");
             });
@@ -1224,11 +1221,9 @@
             meltProgress.style.width = currentProgress + '%';
             meltProgressText.innerText = `WAX MELT STATUS: ${Math.floor(currentProgress)}%`;
 
-            // Dynamic Wax Receding & Drip Physics
             const solidHeight = 190 - (190 * (currentProgress / 100) * 0.55);
             waxLayer.style.height = solidHeight + 'px';
 
-            // Drips elongate down sides
             drip1.style.height = (currentProgress * 0.6) + 'px';
             drip1.style.opacity = (currentProgress / 100);
             drip2.style.height = (currentProgress * 0.4) + 'px';
@@ -1326,23 +1321,46 @@
             document.getElementById('prize-modal').classList.remove('open');
         }
 
+        /* Fixed Copy Coupon Code Function with Fallback */
         function copyCouponCode() {
             const code = document.getElementById('prize-code-text').innerText;
-            navigator.clipboard.writeText(code);
-            alert("Coupon code " + code + " copied to clipboard!");
+            
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(code).then(() => {
+                    alert("Coupon code " + code + " copied to clipboard!");
+                }).catch(() => {
+                    fallbackCopyText(code);
+                });
+            } else {
+                fallbackCopyText(code);
+            }
         }
 
-        /* Claim Prize & Send Email with User Details */
+        function fallbackCopyText(text) {
+            const tempInput = document.createElement('input');
+            tempInput.value = text;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            try {
+                document.execCommand('copy');
+                alert("Coupon code " + text + " copied to clipboard!");
+            } catch (err) {
+                alert("Failed to auto-copy. Your code is: " + text);
+            }
+            document.body.removeChild(tempInput);
+        }
+
+        /* Fixed Claim Prize & Register Action */
         function claimPrizeAndSendEmail() {
             const winnerName = document.getElementById('winner-name-input').value.trim();
             const winnerEmail = document.getElementById('winner-email-input').value.trim();
 
             if (currentWinningPrize && currentWinningPrize.isWin) {
-                if (!winnerName || !winnerEmail) {
-                    alert("Please enter your name and email address to claim your reward!");
-                    return;
+                if (winnerName && winnerEmail) {
+                    sendEmailAlert(currentWinningPrize, winnerName, winnerEmail);
+                } else {
+                    alert("Reward saved! Code copied to clipboard.");
                 }
-                sendEmailAlert(currentWinningPrize, winnerName, winnerEmail);
             }
 
             closePrizeModal();
@@ -1350,9 +1368,9 @@
 
         /* Email Notification Trigger via EmailJS */
         function sendEmailAlert(prize, winnerName, winnerEmail) {
-            const serviceID = document.getElementById('emailjs-service').value;
-            const templateID = document.getElementById('emailjs-template').value;
-            const publicKey = document.getElementById('emailjs-key').value;
+            const serviceID = document.getElementById('emailjs-service').value.trim();
+            const templateID = document.getElementById('emailjs-template').value.trim();
+            const publicKey = document.getElementById('emailjs-key').value.trim();
 
             const templateParams = {
                 to_email: STORE_EMAIL,
@@ -1364,11 +1382,15 @@
                 user_agent: navigator.userAgent
             };
 
-            if (window.emailjs && publicKey !== 'user_public_key') {
-                emailjs.init(publicKey);
-                emailjs.send(serviceID, templateID, templateParams)
+            if (window.emailjs && publicKey && publicKey !== 'user_public_key') {
+                emailjs.send(serviceID, templateID, templateParams, publicKey)
                     .then(() => alert("Your reward has been registered and sent to your email!"))
-                    .catch((err) => console.log('EmailJS dispatch notice:', err));
+                    .catch((err) => {
+                        console.error('EmailJS Error:', err);
+                        alert("Reward claimed! (Note: Confirmation email could not be sent. Please double-check your EmailJS IDs).");
+                    });
+            } else {
+                console.warn("EmailJS public key not set or SDK missing. Skipping email dispatch.");
             }
         }
 
@@ -1493,7 +1515,6 @@
             animate();
         }
 
-        // Initialize application when loaded
         window.addEventListener('DOMContentLoaded', initEvents);
     </script>
 </body>
