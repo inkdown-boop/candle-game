@@ -280,7 +280,7 @@
         .candle-stage {
             width: 100%;
             max-width: 360px;
-            height: 380px;
+            height: 400px;
             position: relative;
             display: flex;
             justify-content: center;
@@ -291,25 +291,26 @@
         /* Candle Jar Outer Glass */
         .candle-jar {
             width: 220px;
-            height: 270px;
+            height: 280px;
             border-radius: 20px 20px 35px 35px;
             border: 3px solid rgba(243, 208, 120, 0.4);
             background: linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(20,5,30,0.85) 100%);
             position: relative;
             box-shadow: 0 15px 35px rgba(0,0,0,0.8), inset 0 0 20px rgba(255,255,255,0.15);
-            overflow: hidden;
+            overflow: visible; /* Allows flames & wicks to sit naturally at the top rim */
             display: flex;
             flex-direction: column;
             justify-content: flex-end;
         }
 
-        /* Solid Wax Layer (Recedes downward) */
+        /* Solid Wax Layer (Recedes downward inside the jar) */
         .wax-solid-layer {
             width: 100%;
             height: 190px;
             background: linear-gradient(180deg, #b8860b 0%, #3a0ca3 40%, #1a0826 100%);
             position: relative;
             transition: height 0.1s linear, background 0.3s ease;
+            border-radius: 0 0 32px 32px;
         }
 
         /* Liquid Pool Surface */
@@ -424,45 +425,47 @@
             100% { transform: translateX(-50%) translateY(-6px); }
         }
 
-        /* Flame and Wicks */
+        /* Permanent Burning Wicks & Flames at Top Rim */
         .wick-container {
             position: absolute;
-            top: -24px;
+            top: -32px;
             left: 50%;
             transform: translateX(-50%);
             display: flex;
-            gap: 50px;
-            z-index: 5;
+            gap: 65px;
+            z-index: 10;
+            pointer-events: none;
         }
 
         .wick-stem {
             width: 3px;
-            height: 22px;
+            height: 30px;
             background: #2a1b09;
             position: absolute;
             bottom: 0;
             left: 50%;
             transform: translateX(-50%);
+            border-radius: 2px;
         }
 
         .flame-wrapper {
             position: absolute;
-            bottom: 18px;
+            bottom: 24px;
             left: 50%;
             transform: translateX(-50%);
-            width: 22px;
-            height: 38px;
+            width: 24px;
+            height: 42px;
         }
 
         .flame {
-            width: 22px;
-            height: 38px;
+            width: 24px;
+            height: 42px;
             background: linear-gradient(180deg, #ffffff 0%, #ffbe0b 30%, #fb5607 70%, #d90429 100%);
             border-radius: 50% 50% 35% 35%;
             position: absolute;
             bottom: 0;
             left: 0;
-            filter: drop-shadow(0 0 14px #ffbe0b) drop-shadow(0 0 5px #fb5607);
+            filter: drop-shadow(0 0 16px #ffbe0b) drop-shadow(0 0 6px #fb5607);
             animation: flicker 0.15s infinite alternate ease-in-out;
             transform-origin: bottom center;
         }
@@ -472,10 +475,10 @@
             100% { transform: scale(1.08) rotate(2deg); opacity: 1; }
         }
 
-        /* Brand Label & Medallion on Jar */
+        /* Brand Name Medallion on Glass Jar */
         .jar-brand-label {
             position: absolute;
-            bottom: 28px;
+            bottom: 35px;
             left: 50%;
             transform: translateX(-50%);
             width: 85px;
@@ -852,8 +855,8 @@
         /* Mobile Adjustments */
         @media (max-width: 600px) {
             .game-main-title { font-size: 1.6rem; }
-            .candle-stage { height: 320px; }
-            .candle-jar { width: 190px; height: 230px; }
+            .candle-stage { height: 340px; }
+            .candle-jar { width: 190px; height: 250px; }
             .steps-bar { font-size: 0.72rem; padding: 8px 14px; gap: 8px; }
             .admin-panel { width: 100%; }
         }
@@ -922,7 +925,7 @@
             <div class="candle-stage">
                 <div class="candle-jar">
                     
-                    <!-- Solid Wax Body Layer -->
+                    <!-- Solid Wax Body Layer (Recedes downward) -->
                     <div class="wax-solid-layer" id="wax-layer">
                         
                         <!-- Top Surface Liquid Pool Ripple -->
@@ -941,12 +944,16 @@
 
                     </div>
 
-                    <!-- Double Burning Wick Flames on Top -->
+                    <!-- Permanent Burning Double Wicks & Flames at Top Rim -->
                     <div class="wick-container">
-                        <div class="wick-stem"></div>
-                        <div class="flame-wrapper"><div class="flame"></div></div>
-                        <div class="wick-stem"></div>
-                        <div class="flame-wrapper"><div class="flame" style="animation-delay: -0.08s;"></div></div>
+                        <div style="position: relative;">
+                            <div class="wick-stem"></div>
+                            <div class="flame-wrapper"><div class="flame"></div></div>
+                        </div>
+                        <div style="position: relative;">
+                            <div class="wick-stem"></div>
+                            <div class="flame-wrapper"><div class="flame" style="animation-delay: -0.08s;"></div></div>
+                        </div>
                     </div>
 
                     <!-- Brand Name Medallion on Glass Jar -->
@@ -1010,11 +1017,18 @@
                 <button class="btn-copy" onclick="copyCouponCode()"><i class="fa-regular fa-copy"></i> COPY</button>
             </div>
 
-            <div class="rules-disclaimer">
-                <i class="fa-solid fa-shield-halved"></i> <strong>Claim Eligibility:</strong> Valid for previous customers or active purchases at checkout. Offer valid for 24 hours. Automated receipt notification dispatched to <em>contact@hisnherflames.com</em>.
+            <!-- Customer Details Capture Form -->
+            <div id="winner-form-container" style="margin-bottom: 18px; text-align: left;">
+                <label style="font-size: 0.78rem; color: var(--accent-gold); display: block; margin-bottom: 4px; font-weight: 600;">Enter your info to register your reward:</label>
+                <input type="text" id="winner-name-input" placeholder="Your Full Name" style="width: 100%; padding: 10px; margin-bottom: 8px; border-radius: 8px; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.5); color: #fff; font-size: 0.85rem; outline: none;">
+                <input type="email" id="winner-email-input" placeholder="Your Email Address" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.5); color: #fff; font-size: 0.85rem; outline: none;">
             </div>
 
-            <button class="btn-primary-action" onclick="closePrizeModal()">CLAIM AT CHECKOUT NOW</button>
+            <div class="rules-disclaimer">
+                <i class="fa-solid fa-shield-halved"></i> <strong>Claim Eligibility:</strong> Valid for previous customers or active purchases at checkout. Offer valid for 24 hours.
+            </div>
+
+            <button class="btn-primary-action" onclick="claimPrizeAndSendEmail()">CLAIM & REGISTER REWARD</button>
         </div>
     </div>
 
@@ -1264,7 +1278,6 @@
                 playSound('win');
                 confetti({ particleCount: 90, spread: 70, origin: { y: 0.6 } });
                 showPrizeModal(currentWinningPrize);
-                sendEmailAlert(currentWinningPrize);
             } else {
                 playSound('fail');
                 showPrizeModal(currentWinningPrize);
@@ -1319,14 +1332,32 @@
             alert("Coupon code " + code + " copied to clipboard!");
         }
 
+        /* Claim Prize & Send Email with User Details */
+        function claimPrizeAndSendEmail() {
+            const winnerName = document.getElementById('winner-name-input').value.trim();
+            const winnerEmail = document.getElementById('winner-email-input').value.trim();
+
+            if (currentWinningPrize && currentWinningPrize.isWin) {
+                if (!winnerName || !winnerEmail) {
+                    alert("Please enter your name and email address to claim your reward!");
+                    return;
+                }
+                sendEmailAlert(currentWinningPrize, winnerName, winnerEmail);
+            }
+
+            closePrizeModal();
+        }
+
         /* Email Notification Trigger via EmailJS */
-        function sendEmailAlert(prize) {
+        function sendEmailAlert(prize, winnerName, winnerEmail) {
             const serviceID = document.getElementById('emailjs-service').value;
             const templateID = document.getElementById('emailjs-template').value;
             const publicKey = document.getElementById('emailjs-key').value;
 
             const templateParams = {
                 to_email: STORE_EMAIL,
+                winner_name: winnerName || "Anonymous Player",
+                winner_email: winnerEmail || "Not Provided",
                 prize_name: prize.name,
                 coupon_code: prize.code,
                 timestamp: new Date().toLocaleString(),
@@ -1336,7 +1367,7 @@
             if (window.emailjs && publicKey !== 'user_public_key') {
                 emailjs.init(publicKey);
                 emailjs.send(serviceID, templateID, templateParams)
-                    .then(() => console.log('Prize alert email sent successfully.'))
+                    .then(() => alert("Your reward has been registered and sent to your email!"))
                     .catch((err) => console.log('EmailJS dispatch notice:', err));
             }
         }
