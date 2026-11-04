@@ -34,7 +34,7 @@
         }
 
         /* Seasonal Theme Overrides */
-        body.theme- thanksgiving {
+        body.theme-thanksgiving {
             --bg-primary: #1a0a03;
             --bg-secondary: #2d1408;
             --accent-gold: #f4a261;
@@ -312,7 +312,7 @@
             transition: height 0.1s linear, background 0.3s ease;
         }
 
-        /* Liquid Wax Pool Top Surface */
+        /* Liquid Pool Surface */
         .liquid-pool-surface {
             position: absolute;
             top: 0;
@@ -348,7 +348,7 @@
             transition: opacity 0.3s ease, height 0.2s linear;
         }
 
-        /* Embedded Amethyst Gem (Hidden inside wax) */
+        /* Embedded Amethyst Gem */
         .amethyst-gem {
             position: absolute;
             bottom: 60px;
@@ -427,62 +427,86 @@
         /* Flame and Wicks */
         .wick-container {
             position: absolute;
-            top: -20px;
+            top: -24px;
             left: 50%;
             transform: translateX(-50%);
             display: flex;
-            gap: 40px;
+            gap: 50px;
             z-index: 5;
         }
 
-        .single-wick {
-            width: 4px;
-            height: 18px;
-            background: #222;
-            position: relative;
+        .wick-stem {
+            width: 3px;
+            height: 22px;
+            background: #2a1b09;
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .flame-wrapper {
+            position: absolute;
+            bottom: 18px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 22px;
+            height: 38px;
         }
 
         .flame {
-            width: 18px;
-            height: 32px;
-            background: linear-gradient(180deg, #ffffff 0%, #ffbe0b 35%, #fb5607 70%, transparent 100%);
+            width: 22px;
+            height: 38px;
+            background: linear-gradient(180deg, #ffffff 0%, #ffbe0b 30%, #fb5607 70%, #d90429 100%);
             border-radius: 50% 50% 35% 35%;
             position: absolute;
-            top: -28px;
-            left: 50%;
-            transform: translateX(-50%);
-            filter: drop-shadow(0 0 12px #ffbe0b);
+            bottom: 0;
+            left: 0;
+            filter: drop-shadow(0 0 14px #ffbe0b) drop-shadow(0 0 5px #fb5607);
             animation: flicker 0.15s infinite alternate ease-in-out;
+            transform-origin: bottom center;
         }
 
         @keyframes flicker {
-            0% { transform: translateX(-50%) scale(1) rotate(-1deg); opacity: 0.95; }
-            100% { transform: translateX(-50%) scale(1.08) rotate(1.5deg); opacity: 1; }
+            0% { transform: scale(1) rotate(-1.5deg); opacity: 0.95; }
+            100% { transform: scale(1.08) rotate(2deg); opacity: 1; }
         }
 
-        /* Brand Logo Medallion on Jar */
-        .jar-logo-medallion {
+        /* Brand Label & Medallion on Jar */
+        .jar-brand-label {
             position: absolute;
-            bottom: 25px;
+            bottom: 28px;
             left: 50%;
             transform: translateX(-50%);
-            width: 75px;
-            height: 75px;
+            width: 85px;
+            height: 85px;
             border-radius: 50%;
             border: 2px solid var(--accent-gold);
-            background: rgba(0,0,0,0.85);
+            background: rgba(10, 4, 13, 0.9);
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 0 15px rgba(0,0,0,0.9);
+            box-shadow: 0 0 18px rgba(0,0,0,0.9), inset 0 0 10px rgba(243, 208, 120, 0.2);
             z-index: 6;
+            text-align: center;
+            padding: 6px;
         }
 
-        .jar-logo-medallion svg {
-            width: 36px;
-            height: 36px;
+        .jar-brand-label svg {
+            width: 26px;
+            height: 26px;
             fill: var(--accent-gold);
+            margin-bottom: 2px;
+        }
+
+        .jar-brand-text {
+            font-family: var(--font-heading);
+            font-size: 0.5rem;
+            font-weight: 700;
+            color: var(--accent-gold);
+            letter-spacing: 0.5px;
+            line-height: 1.1;
         }
 
         /* Interactive Controls Section */
@@ -864,7 +888,7 @@
     <main class="game-wrapper">
 
         <div class="game-header">
-            <p class="game-subtitle">Exclusive Luxury Reward Ritual</p>
+            <p class="game-subtitle">Win Exclusive Luxury Rewards</p>
             <h1 class="game-main-title">Melt The Candle, Claim The Flame</h1>
 
             <!-- Step Progress Indicator -->
@@ -917,17 +941,20 @@
 
                     </div>
 
-                    <!-- Triple Flame Wicks -->
+                    <!-- Double Burning Wick Flames on Top -->
                     <div class="wick-container">
-                        <div class="single-wick"><div class="flame"></div></div>
-                        <div class="single-wick"><div class="flame" style="animation-delay: -0.07s;"></div></div>
+                        <div class="wick-stem"></div>
+                        <div class="flame-wrapper"><div class="flame"></div></div>
+                        <div class="wick-stem"></div>
+                        <div class="flame-wrapper"><div class="flame" style="animation-delay: -0.08s;"></div></div>
                     </div>
 
-                    <!-- Glass Jar Brand Logo Medallion -->
-                    <div class="jar-logo-medallion">
+                    <!-- Brand Name Medallion on Glass Jar -->
+                    <div class="jar-brand-label">
                         <svg viewBox="0 0 24 24">
                             <path d="M12,2C11.5,5 9,7 9,10C9,12.21 10.79,14 13,14C15.21,14 17,12.21 17,10C17,7 14.5,5 14,2C12,2 12,2 12,2M12,22C16.42,22 20,18.42 20,14C20,11.08 18.42,8.5 16,7.16C16.84,9.29 16.14,11.75 14.37,13.15C12.6,14.56 10.12,14.62 8.28,13.3C7.47,15 7.71,17.08 8.95,18.5C10.19,19.92 12.06,20.5 13.9,20.08C12.92,21.28 11.47,22 12,22Z"/>
                         </svg>
+                        <span class="jar-brand-text">HisNHer<br>Flames</span>
                     </div>
 
                 </div>
@@ -1011,17 +1038,17 @@
 
         <div class="admin-group">
             <label class="admin-label">EmailJS Service ID</label>
-            <input type="text" class="admin-input" id="service_hl7cmpm" value="service_hisnherflames">
+            <input type="text" class="admin-input" id="emailjs-service" value="service_hl7cmpm">
         </div>
 
         <div class="admin-group">
             <label class="admin-label">EmailJS Template ID</label>
-            <input type="text" class="admin-input" id="template_2ts4whi" value="template_prize_alert">
+            <input type="text" class="admin-input" id="emailjs-template" value="template_2ts4whi">
         </div>
 
         <div class="admin-group">
             <label class="admin-label">EmailJS Public Key</label>
-            <input type="text" class="admin-input" id="Rjbg8YqxW-ZJMfY-8" value="user_public_key">
+            <input type="text" class="admin-input" id="emailjs-key" value="Rjbg8YqxW-ZJMfY-8">
         </div>
 
         <button class="btn-primary-action" style="margin-top: 10px; font-size: 0.85rem; padding: 10px;" onclick="resetCooldownTimer()">Reset Cooldown Timer</button>
@@ -1159,7 +1186,6 @@
             liquidPool.classList.add('active');
 
             meltInterval = setInterval(() => {
-                // Balanced melting speed rate (~2.5 - 3 seconds total)
                 currentProgress += 0.65;
 
                 if (currentProgress >= 100) {
@@ -1200,11 +1226,9 @@
             currentStep = 2;
             playSound('pop');
 
-            // Update Steps Tracker UI
             document.getElementById('step-indicator-1').classList.remove('active');
             document.getElementById('step-indicator-2').classList.add('active');
 
-            // Reveal Gem with Animation
             crystalGem.classList.add('revealed');
 
             btnText.innerText = "TAP GEM IN CANDLE TO EXTRACT";
@@ -1219,7 +1243,6 @@
 
             playSound('pop');
 
-            // Animate Gem Extract Burst
             crystalGem.style.transform = 'translateX(-50%) translateY(-60px) scale(1.3)';
             crystalGem.style.opacity = '0';
 
@@ -1235,7 +1258,6 @@
             document.getElementById('step-indicator-2').classList.remove('active');
             document.getElementById('step-indicator-3').classList.add('active');
 
-            // Pick Weighted Outcome from Pool
             currentWinningPrize = pickWeightedPrize();
 
             if (currentWinningPrize.isWin) {
